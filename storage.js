@@ -20,7 +20,7 @@ function getTimestampAfterNDays(n) {
 }
 module.exports.getTimestampAfterNDays = getTimestampAfterNDays;
 
-module.exports.add = function add(data, key = nanoid(), expireAfterDays = 7) {
+module.exports.add = function add(data, key = nanoid(), expireAfterDays = 0) {
     const expireOn = getTimestampAfterNDays(expireAfterDays);
     return query(`INSERT INTO ${TABLE_NAME} (key, data, expire_on) VALUES($1, $2, $3) RETURNING key`, [
         key,
@@ -40,4 +40,10 @@ module.exports.get = function get(key, now = getTimestampAfterNDays(0)) {
         if (!result.rows.length) return null;
         return JSON.parse(result.rows[0].data);
     });
+};
+
+module.exports.deleteStorage = function deleteStorage() {
+    return query(`DELETE FROM ${TABLE_NAME} WHERE expire_on < $1`, [getTimestampAfterNDays(0)]).then(
+        (result) => result.rowCount,
+    );
 };

@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const createHttpError = require('http-errors');
-const { get, add } = require('./storage');
+const { get, add, deleteStorage } = require('./storage');
 
 module.exports = express()
     .use(cors())
@@ -28,6 +28,11 @@ module.exports = express()
         return add(data, key, expireDuration)
             .then((key) => res.status(201).json({ key }))
             .catch(next);
+    })
+    .delete('/storage', (req, res, next) => {
+        deleteStorage().then((rowCount) => {
+            res.json({ deleted: rowCount });
+        });
     })
     .use((req, res, next) => next(createHttpError(404, `Unknown resource ${req.method} ${req.originalUrl}`)))
     .use((error, req, res, next) => {
